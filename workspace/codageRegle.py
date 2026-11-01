@@ -66,6 +66,63 @@ def a_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
         case _:
             return ([])
 
+
+#b_or_t
+##pour la terminairson (à mettre dans le rapport), il faut appliquer
+##la règle ssi ni a ni b n'appartient à gamma
+##car sinon on a a ou b, mais si on a deja soit a soit b, alors on a évidemment
+##a ou b
+def b_or_t_appcond(fs:list[Form], s:Seq) -> bool:
+     match (fs , s):
+            case ([ Or(a,b)], Seq(g,False )):
+                return ( none_in(a, b, g))
+            case _:
+                return (False)
+         
+def b_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
+    match(fs, s):
+        case([Or(a,b)], Seq(g,False )):
+            return ([ Seq(insert_forms (g, a), FF ()),Seq(insert_forms (g, b), FF ()) ])
+        case _:
+            return ([])
+
+##b_and_t
+##les conditions sont les mêmes que pour b_or_t car la règle est équivalent
+def b_and_t_appcond(fs:list[Form], s:Seq) -> bool:
+     match (fs , s):
+            case ([ Not(And(a,b))], Seq(g,False )):
+                return ( none_in(Not(a), Not(b), g))
+            case _:
+                return (False)
+         
+def b_and_t_action(fs:list[Form], s:Seq) -> list[Seq]:
+    match(fs, s):
+        case([Not(And(a,b))], Seq(g,False )):
+            return ([ Seq(insert_forms (g, Not(a)), FF ()),Seq(insert_forms (g, Not(b)), FF ()) ])
+        case _:
+            return ([])
+
+# b_impl_t_action
+##a -> b = non a ou b, donc b_impl_t est équivalent a b_or_t, donc les
+## conditions sont les mêmes
+def b_impl_t_appcond(fs:list[Form], s:Seq) -> bool:
+     match (fs , s):
+            case ([ Impl(a,b)], Seq(g,False )):
+                return ( none_in(Not(a), b, g))
+            case _:
+                return (False)
+         
+def b_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
+    match(fs, s):
+        case([Impl(a,b)], Seq(g,False )):
+            return ([ Seq(insert_forms (g, Not(a)), FF ()),Seq(insert_forms (g, b), FF ()) ])
+        case _:
+            return ([])
+##rules 
+s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
+a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
+a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
+
 ##rules 
 s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
