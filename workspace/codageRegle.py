@@ -123,7 +123,3 @@ s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
 a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
 
-##rules 
-s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
-a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
-a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
