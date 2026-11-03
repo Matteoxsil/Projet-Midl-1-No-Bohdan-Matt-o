@@ -14,6 +14,10 @@ def is_in(fs : list[Form], f:Form) -> bool:
 def not_both_in(a:Form, b:Form ,g:list[Form]) -> bool:
     return not is_in(g, a) or not is_in(g, b)
 
+def none_in(a:Form, b:Form ,g:list[Form]) -> bool:
+    return not is_in(g,a) and not is_in(g,b)
+
+
 ## fonction insert_forms qui evite les doublons
 def insert_forms(fs : list[Form], f:Form) -> list[Form]:
     if is_in(fs, f):
@@ -37,17 +41,27 @@ def s_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
             return ([])
 
 ##Axiome Complementaire/contradiction(si g donne a et non(a) alors g donne false)
-def contradiction_appcond(fs:list[Form], s:Seq)->bool:
-    for a in fs:
-        if not(a) in fs:
-            return True
-    return False
-
+# ##TODO à discuter si necessaire: different des autres regles, semble inutile
+# def contradiction_appcond(fs:list[Form], s:Seq)->bool:
+#     match (fs , s):
+#             case ([a], Seq(g,FF() )):
+#                 return (not(a) in g)
+#             case _:
+#                 return (False)
+    
+# def contradiction_action(fs:list[Form], s:Seq)->list[Seq]:
+#     match (fs , s):
+#             case ([a], Seq(g,FF() )):
+#                 return ([Seq(insert_forms(g,not(a)),FF())])
+#             case _:
+#                 return ([])
+    
 ## a_and_t
 def a_and_t_appcond (fs: list[Form], s: Seq) -> bool:
     match (fs , s):
         case ([ And(a,b)], Seq(g,FF() )):
-            return ( not_both_in (a, b, g))
+            return ( not_both_in (a, b, g))     
+                #TODO ce ne serait pas not(a) et not(b)? Puisque la regle est applicable ssi a and b sont dans g
         case _:
             return (False)
 
@@ -64,12 +78,26 @@ def a_or_t_appcond(fs:list[Form], s:Seq) -> bool:
      match (fs , s):
             case ([ Not(Or(a,b))], Seq(g,FF() )):
                 return ( not_both_in (Not(a), Not(b), g))
+                    #TODO ce ne serait pas none_in(a,b,g)? Puisque la regle est applicable ssi not(a) and not(b) sont dans g
             case _:
                 return (False)
 def a_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
     match(fs, s):
         case([Not(Or(a,b))], Seq(g,FF() )):
             return ([ Seq( insert_forms(insert_forms (g, Not(a)), Not(b)), FF ())])
+        case _:
+            return ([])
+##a_impl_t
+def a_impl_t_appcond(fs:list[Form], s:Seq) -> bool:
+     match (fs , s):
+            case ([ Not(Impl(a,b))], Seq(g,FF() )):
+                return (not (Impl(a,b) in g))
+            case _:
+                return (False)
+def a_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
+    match(fs, s):
+        case ([ Not(Impl(a,b))], Seq(g,FF() )):
+            return ([ Seq( insert_forms(insert_forms (g, a), Not(b)), FF ())])
         case _:
             return ([])
 
@@ -130,3 +158,6 @@ s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
 a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
 
+b_and_t_rule = Rule("b_and_t", b_and_t_appcond, b_and_t_action)
+b_or_t_rule = Rule("b_and_t", b_or_t_appcond, b_or_t_action)
+b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
