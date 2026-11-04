@@ -39,7 +39,8 @@ def s_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
             return ([ Seq( insert_forms (g, [Not(a)]), FF ())])
         case _:
             return ([])
-
+#concernant ça, c'est l'axiome AxC donc pour moi utile car elle permet de terminer une preuve (sans ça on a rien pour le faire)
+#après niveau implémentation jsp encore trop, je suis en train de faire la fonction next proof state donc je ferai un retour plus tard
 ##Axiome Complementaire/contradiction(si g donne a et non(a) alors g donne false)
 # ##TODO à discuter si necessaire: different des autres regles, semble inutile
 # def contradiction_appcond(fs:list[Form], s:Seq)->bool:
