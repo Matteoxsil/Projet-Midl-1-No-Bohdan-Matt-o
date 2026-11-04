@@ -62,6 +62,9 @@ def a_and_t_appcond (fs: list[Form], s: Seq) -> bool:
         case ([ And(a,b)], Seq(g,FF() )):
             return ( not_both_in (a, b, g))     
                 #TODO ce ne serait pas not(a) et not(b)? Puisque la regle est applicable ssi a and b sont dans g
+                ## reponse : ça c'est donné dans le sujet, et l'explication du pourquoi pas not both in et pas none in est que on acquiert de l'info même si il n'y a que un des deux dedans
+                ##exemple, si on a A et B qui appartient a gamma, alors, même si on a deja A qui appartient a gamma, on gagne de l'information en ajoutant B a gamma
+                
         case _:
             return (False)
 
@@ -79,6 +82,7 @@ def a_or_t_appcond(fs:list[Form], s:Seq) -> bool:
             case ([ Not(Or(a,b))], Seq(g,FF() )):
                 return ( not_both_in (Not(a), Not(b), g))
                     #TODO ce ne serait pas none_in(a,b,g)? Puisque la regle est applicable ssi not(a) and not(b) sont dans g
+                    # va voir la réponse que j'ai faite sur a_and_t, et dis moi si ça te convainc
             case _:
                 return (False)
 def a_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
