@@ -49,7 +49,13 @@ def s_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
 #                 return (not(a) in g)
 #             case _:
 #                 return (False)
-    
+
+
+
+##par contre sur cette partie là c'est pas bon, l'axiome n'ajoute aucune formule au séquent
+#il ne faut pas ajouter not(a)
+#par contre qu'est ce que doit renvoyer la fonction cette fonction je ne sais pas
+#en tout cas il ne faut pas rajouter de nouvelle hyp pour suite a un axiome
 # def contradiction_action(fs:list[Form], s:Seq)->list[Seq]:
 #     match (fs , s):
 #             case ([a], Seq(g,FF() )):
