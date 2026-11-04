@@ -172,3 +172,30 @@ a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
 b_and_t_rule = Rule("b_and_t", b_and_t_appcond, b_and_t_action)
 b_or_t_rule = Rule("b_and_t", b_or_t_appcond, b_or_t_action)
 b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
+
+
+##4.3
+##alors proposition, pour les axiomes, le renvoie sera une liste vide
+##de cet façon on comprend que le séquent est resolu
+##si vous avez d'autres idées vous pouvez les implémenter, on peut en discuter etc
+#mais étant donné que les axiomes n'ajoute rien a l'ensemble des hypothèse...
+                
+def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
+    #on choisi donc le premier sequent
+    sequentEtudie = ps[0]
+    #j'ai un doute sur si on peut utiliser Calculus au lieu de faire une liste de règle a la main
+    ##dans le doute j'ai fait ça
+    listeRegleEtAxiomes = [s_t_rule,a_and_t_rule, a_or_t_rule ] #à remplir quand toutes les règles seront codées
+    nouvelleEtatPreuve = list() #liste de proostatesV0
+    ##jsp si on le garde ça, ou si juste le proofstate contient une close vide
+    #jsp si ça marche, si c'ets nécéssaire a voir au moment du test
+    if s_t_rule.appcond([], sequentEtudie):
+        nouvelleEtatPreuve.append(s_t_rule.action([], sequentEtudie))
+
+    for hyp in sequentEtudie.concl:
+            
+        for regle in listeRegleEtAxiomes:
+            if regle.appcond([hyp], sequentEtudie):
+                nouvelleEtatPreuve.append(regle.action([hyp], sequentEtudie))
+
+    return nouvelleEtatPreuve
