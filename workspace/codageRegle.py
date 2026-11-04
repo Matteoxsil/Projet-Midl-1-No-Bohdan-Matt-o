@@ -179,7 +179,12 @@ b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
 ##de cet façon on comprend que le séquent est resolu
 ##si vous avez d'autres idées vous pouvez les implémenter, on peut en discuter etc
 #mais étant donné que les axiomes n'ajoute rien a l'ensemble des hypothèse...
-                
+
+#edit : a priori de ce que je vois dans le sujet, les axiomes suprimesnt le sequent résolu de l'état de preuve 
+#je ne sais pas encore si on peut le coder dans l'implémentation des axiomes ou si il faut le faire dans cette fonction
+#si jamais on ne peut pas le faire dans l'axiome
+#il faut juste rajouter après le if regle.appcond(...) un if regle not in listeAxiomes then suite du code classique,
+##le sinon etant on ne le met pas dans le nouvel etat de preuve, donc ça correspond a un rien
 def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     #on choisi donc le premier sequent
     sequentEtudie = ps[0]
