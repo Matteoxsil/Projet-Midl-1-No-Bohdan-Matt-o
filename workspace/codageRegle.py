@@ -215,11 +215,39 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
 
     return nouvelleEtatPreuve
 
-def test():
-    #test de sequent avec a_and_t. Ne fonctionne pas, on la reverras
+def test():  #Ne fonctionne pas, on la reverras
+    #On remplaceras print avec assert quand on auras une meilleur idée du rendu voulu
     a,b,c=Var("a"),Var("b"),Var("c")
+    #test de sequent avec s_t
+    ps0=ProofStateV0([Seq([a],a)])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec n_t
+    ps0=ProofStateV0([Seq([Not(Not(a))],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec a_and_t.
     ps0=ProofStateV0([Seq([And(a,b)],FF())])
     ps1=next_proof_state(ps0)
     print(ps1)
-
+    #test de sequent avec a_or_t
+    ps0=ProofStateV0([Seq([Not(Or(a,b))],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec a_impl_t
+    ps0=ProofStateV0([Seq([Not(Impl(a,b))],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec a_and_t.
+    ps0=ProofStateV0([Seq([Not(And(a,b))],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec a_or_t
+    ps0=ProofStateV0([Seq([Or(a,b)],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+    #test de sequent avec a_impl_t
+    ps0=ProofStateV0([Seq([Impl(a,b)],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
 #test()
