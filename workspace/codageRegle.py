@@ -63,15 +63,26 @@ def s_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
 #             case _:
 #                 return ([])
     
+##La Negation: Not(Not(a)) donne a
+def n_t_appcond (fs: list[Form], s: Seq) -> bool:
+    match (fs , s):
+        case ([Not(Not(a))], Seq(g,FF())):
+            return (a not in g)
+        case _:
+            return(False)
+        
+def n_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
+    match (fs , s):
+        case ([Not(Not(a))], Seq(g,FF() )):
+            return ([ Seq( insert_forms (g, a), FF ())])
+        case _:
+            return ([])
+        
 ## a_and_t
 def a_and_t_appcond (fs: list[Form], s: Seq) -> bool:
     match (fs , s):
         case ([ And(a,b)], Seq(g,FF() )):
-            return ( not_both_in (a, b, g))     
-                #TODO ce ne serait pas not(a) et not(b)? Puisque la regle est applicable ssi a and b sont dans g
-                ## reponse : ça c'est donné dans le sujet, et l'explication du pourquoi pas not both in et pas none in est que on acquiert de l'info même si il n'y a que un des deux dedans
-                ##exemple, si on a A et B qui appartient a gamma, alors, même si on a deja A qui appartient a gamma, on gagne de l'information en ajoutant B a gamma
-                
+            return ( not_both_in (a, b, g))
         case _:
             return (False)
 
@@ -88,8 +99,6 @@ def a_or_t_appcond(fs:list[Form], s:Seq) -> bool:
      match (fs , s):
             case ([ Not(Or(a,b))], Seq(g,FF() )):
                 return ( not_both_in (Not(a), Not(b), g))
-                    #TODO ce ne serait pas none_in(a,b,g)? Puisque la regle est applicable ssi not(a) and not(b) sont dans g
-                    # va voir la réponse que j'ai faite sur a_and_t, et dis moi si ça te convainc
             case _:
                 return (False)
 def a_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
@@ -102,7 +111,7 @@ def a_or_t_action(fs:list[Form], s:Seq) -> list[Seq]:
 def a_impl_t_appcond(fs:list[Form], s:Seq) -> bool:
      match (fs , s):
             case ([ Not(Impl(a,b))], Seq(g,FF() )):
-                return (not (Impl(a,b) in g))
+                return (not_both_in(a,not(b),g))
             case _:
                 return (False)
 def a_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
@@ -168,7 +177,7 @@ def b_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
 s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
 a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
-
+a_impl_t_rule = Rule("a_impl_t", a_impl_t_appcond,a_impl_t_action)
 b_and_t_rule = Rule("b_and_t", b_and_t_appcond, b_and_t_action)
 b_or_t_rule = Rule("b_and_t", b_or_t_appcond, b_or_t_action)
 b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
