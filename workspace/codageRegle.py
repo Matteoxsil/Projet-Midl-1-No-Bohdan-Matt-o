@@ -121,7 +121,6 @@ def a_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
         case _:
             return ([])
 
-
 #b_or_t
 ##pour la terminairson (à mettre dans le rapport), il faut appliquer
 ##la règle ssi ni a ni b n'appartient à gamma
@@ -175,6 +174,8 @@ def b_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
             return ([])
 ##rules 
 s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
+n_t_rule = Rule("n_t", n_t_appcond, n_t_action)
+#Place pour axC p eventuel
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
 a_or_t_rule = Rule("a_and_t", a_or_t_appcond, a_or_t_action)
 a_impl_t_rule = Rule("a_impl_t", a_impl_t_appcond,a_impl_t_action)
@@ -213,3 +214,12 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
                 nouvelleEtatPreuve.append(regle.action([hyp], sequentEtudie))
 
     return nouvelleEtatPreuve
+
+def test():
+    #test de sequent avec a_and_t. Ne fonctionne pas, on la reverras
+    a,b,c=Var("a"),Var("b"),Var("c")
+    ps0=ProofStateV0([Seq([And(a,b)],FF())])
+    ps1=next_proof_state(ps0)
+    print(ps1)
+
+#test()
