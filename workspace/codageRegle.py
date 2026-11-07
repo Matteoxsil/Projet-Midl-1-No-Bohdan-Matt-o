@@ -231,7 +231,10 @@ a_impl_t_rule = Rule("a_impl_t", a_impl_t_appcond,a_impl_t_action)
 b_and_t_rule = Rule("b_and_t", b_and_t_appcond, b_and_t_action)
 b_or_t_rule = Rule("b_or_t", b_or_t_appcond, b_or_t_action)
 b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
-
+listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule, 
+                       a_and_t_rule, a_or_t_rule, a_impl_t_rule, 
+                       b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
+#listeRegleEtAxiomes n'est pas specifique à une fonction donc variable globale
 
 ##4.3
 ##alors proposition, pour les axiomes, le renvoie sera une liste vide
@@ -259,11 +262,12 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     sequentEtudie = ps[0]
     #j'ai un doute sur si on peut utiliser Calculus au lieu de faire une liste de règle a la main
     ##dans le doute j'ai fait ça
-    listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule, a_and_t_rule, 
-                           a_or_t_rule, a_impl_t_rule, b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
+    
     nouvelleEtatPreuve = list() #liste de proostatesV0
     ##jsp si on le garde ça, ou si juste le proofstate contient une close vide
     #jsp si ça marche, si c'ets nécéssaire a voir au moment du test
+
+    #J'ai fait de listeRegleEtAxiomes un variable global comme ça n'a rien de spécifique à cette fonction
 
     # fs = []
     if s_t_rule.appcond([], sequentEtudie):
@@ -294,13 +298,14 @@ def dfs (nexts: Callable [[PS], list[PS]],sol: Callable [[PS], bool],states: lis
             # return [states [0]] + dfs(nexts , sol , nexts(states [0]) + states [1:])
         else:
             return dfs(nexts , sol , nexts(states [0]) + states [1:])
-def nexts_nat (n: int) -> int:
-    if n < 20:
-        return [2 * n, 2 * n + 1]
-    else:
-        return []
-def sol_nat (n: int) -> bool:
-    return (n % 5 == 0)
+
+def sol_proof_state (sequentEtudie: Seq) -> bool:
+    for hyp in sequentEtudie.hyps:     
+        for regle in listeRegleEtAxiomes:
+            if regle.appcond([hyp], sequentEtudie):
+                return False
+    return True
+    #return next_proof_state([sequentEtudie])==[]
 
 ##Fonctions de test.
 def test_next_proof_state():
@@ -378,8 +383,19 @@ def test_next_proof_state():
     assert(ps1 == [])
 
     print("------All tests OK------")
+def test_sol_proof_state():
+    print("Testing sol_proof_state...")
+    """ Tests de sol_proof_state (ProofStateV0)"""
+    a,b,c=Var("a"),Var("b"),Var("c")
+    #cas sans rien à prouver
+    assert (sol_proof_state(Seq([a],FF())))
+    assert (not sol_proof_state(Seq([Not(Not(a))],FF())))
+    print("------All tests OK------")
 
 def test_general():
     test_next_proof_state()
+    test_sol_proof_state()
+    print("Tout les tests ont reussis")
 
-dfs(nexts_nat, sol_nat, [1])
+#dfs(next_proof_state, sol_proof_state, [1])
+test_general()
