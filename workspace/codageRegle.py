@@ -1,5 +1,5 @@
 from datastructs import *
-
+from typing import TypeVar
 
 
 def is_in(fs : list[Form], f:Form) -> bool:
@@ -29,9 +29,6 @@ def insert_forms(fs : list[Form], f:Form) -> list[Form]:
         return fs
     else:
         return fs + [f]
-    
-for f in insert_forms([FF()], And(Var('a'), Var('b'))):
-    print(f)
 
 assert (insert_forms([FF()], And(Var('a'), Var('b')))) == [FF(), And(Var('a'), Var('b'))]
     
@@ -284,10 +281,33 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
 
     return nouvelleEtatPreuve
 
-def test():
+
+PS = TypeVar("PS")
+def dfs (nexts: Callable [[PS], list[PS]],sol: Callable [[PS], bool],states: list[PS]) -> list[PS]:
+    print(states)
+    if states == []:
+        return ([])
+    else:
+        if sol(states [0]):
+            return [states [0]]
+            # si vous souhaitez continuer la recherche , decommentez :
+            # return [states [0]] + dfs(nexts , sol , nexts(states [0]) + states [1:])
+        else:
+            return dfs(nexts , sol , nexts(states [0]) + states [1:])
+def nexts_nat (n: int) -> int:
+    if n < 20:
+        return [2 * n, 2 * n + 1]
+    else:
+        return []
+def sol_nat (n: int) -> bool:
+    return (n % 5 == 0)
+
+##Fonctions de test.
+def test_next_proof_state():
+    print("Testing next_proof_state...")
     """ Tests de next_proof_state (ProofStateV0)"""
     a,b,c=Var("a"),Var("b"),Var("c")
-
+    
     #test de sequent avec s_t
     ps0=ProofStateV0([Seq([a],a)])
     ps1=next_proof_state(ps0)
@@ -359,4 +379,7 @@ def test():
 
     print("------All tests OK------")
 
-test()
+def test_general():
+    test_next_proof_state()
+
+dfs(nexts_nat, sol_nat, [1])
