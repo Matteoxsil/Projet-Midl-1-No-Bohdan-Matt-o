@@ -52,29 +52,39 @@ def s_t_action (fs: list[Form], s: Seq) -> list[Seq ]:
             return ([ Seq( insert_forms (g, Not(a)), FF ())])
         case _:
             return ([])
-#concernant ça, c'est l'axiome AxC donc pour moi utile car elle permet de terminer une preuve (sans ça on a rien pour le faire)
-#après niveau implémentation jsp encore trop, je suis en train de faire la fonction next proof state donc je ferai un retour plus tard
-##Axiome Complementaire/contradiction(si g donne a et non(a) alors g donne false)
-# ##TODO à discuter si necessaire: different des autres regles, semble inutile
-# def contradiction_appcond(fs:list[Form], s:Seq)->bool:
-#     match (fs , s):
-#             case ([a], Seq(g,FF() )):
-#                 return (not(a) in g)
-#             case _:
-#                 return (False)
 
 
 
-##par contre sur cette partie là c'est pas bon, l'axiome n'ajoute aucune formule au séquent
-#il ne faut pas ajouter not(a)
-#par contre qu'est ce que doit renvoyer la fonction cette fonction je ne sais pas
-#en tout cas il ne faut pas rajouter de nouvelle hyp pour suite a un axiome
-# def contradiction_action(fs:list[Form], s:Seq)->list[Seq]:
-#     match (fs , s):
-#             case ([a], Seq(g,FF() )):
-#                 return ([Seq(insert_forms(g,not(a)),FF())])
-#             case _:
-#                 return ([])
+def axc_t_appcond(fs:list[Form], s:Seq)->bool:
+    """ Condition d'applicabilité de l'axiome (AxC)
+
+        Les hypothèses contiennent A et ¬A, elles sont donc contradictoires
+    """
+    match (fs , s):
+        case ([a], Seq(g,FF() )):
+            return (Not(a) in g)
+        case _:
+            return (False)
+
+
+def axc_t_action(fs:list[Form], s:Seq)->list[Seq]:
+    """ Action de l'axiome (AxC): aucun séquent successeur (renvoie liste vide) """
+    return []
+
+
+def axf_t_appcond(fs:list[Form], s:Seq)->bool:
+    """ Condition d'applicabilité de l'axiome (AxF) """
+    match(fs, s):
+        case ([], Seq(g, FF())):
+            return (FF() in g)
+        case _:
+            return (False)
+
+def axf_t_action(fs:list[Form], s:Seq)->list[Seq]:
+    """ Action de l'axiome (AxF): aucun séquent successeur (renvoie liste vide) """
+    return []
+
+
     
 ##La Negation: Not(Not(a)) donne a
 def n_t_appcond (fs: list[Form], s: Seq) -> bool:
@@ -211,10 +221,13 @@ def b_impl_t_action(fs:list[Form], s:Seq) -> list[Seq]:
             return ([ Seq(insert_forms (g, Not(a)), FF ()),Seq(insert_forms (g, b), FF ()) ])
         case _:
             return ([])
+
+        
 ##rules 
 s_t_rule = Rule("s_t", s_t_appcond, s_t_action)
 n_t_rule = Rule("n_t", n_t_appcond, n_t_action)
-#Place pour axC p eventuel
+axc_t_rule = Rule("axc_t", axc_t_appcond, axc_t_action)
+axf_t_rule = Rule("axf_t", axf_t_appcond, axf_t_action)
 a_and_t_rule = Rule("a_and_t", a_and_t_appcond, a_and_t_action)
 a_or_t_rule = Rule("a_or_t", a_or_t_appcond, a_or_t_action)
 a_impl_t_rule = Rule("a_impl_t", a_impl_t_appcond,a_impl_t_action)
@@ -249,8 +262,8 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     sequentEtudie = ps[0]
     #j'ai un doute sur si on peut utiliser Calculus au lieu de faire une liste de règle a la main
     ##dans le doute j'ai fait ça
-    listeRegleEtAxiomes = [s_t_rule, n_t_rule, a_and_t_rule, a_or_t_rule, 
-                           a_impl_t_rule, b_and_t_rule, b_or_t_rule, b_impl_t_rule ] #à remplir quand toutes les règles seront codées
+    listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule, a_and_t_rule, 
+                           a_or_t_rule, a_impl_t_rule, b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
     nouvelleEtatPreuve = list() #liste de proostatesV0
     ##jsp si on le garde ça, ou si juste le proofstate contient une close vide
     #jsp si ça marche, si c'ets nécéssaire a voir au moment du test
@@ -259,48 +272,91 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     if s_t_rule.appcond([], sequentEtudie):
         nouvelleEtatPreuve.append(s_t_rule.action([], sequentEtudie) + ps[1:])
 
+    if axf_t_rule.appcond([], sequentEtudie):
+        nouvelleEtatPreuve.append(axf_t_rule.action([], sequentEtudie) + ps[1:])
+
     for hyp in sequentEtudie.hyps:     
         for regle in listeRegleEtAxiomes:
             if regle.appcond([hyp], sequentEtudie):
                 # Le premier séquent est remplacé par des séquents successeurs
-                # Aucun pour in axiome: il disparaît, les autres sont conservés
-                nouvelleEtatPreuve.append(regle.action([hyp], sequentEtudie) + ps[1:]) #
+                # Aucun pour un axiome: il disparaît, les autres sont conservés
+                nouvelleEtatPreuve.append(regle.action([hyp], sequentEtudie) + ps[1:]) 
 
     return nouvelleEtatPreuve
 
-def test():  #Ne fonctionne pas, on la reverras
-    #On remplaceras print avec assert quand on auras une meilleur idée du rendu voulu
+def test():
+    """ Tests de next_proof_state (ProofStateV0)"""
     a,b,c=Var("a"),Var("b"),Var("c")
+
     #test de sequent avec s_t
     ps0=ProofStateV0([Seq([a],a)])
     ps1=next_proof_state(ps0)
-    print(ps1)
+    assert(ps1 == ([[Seq([a, Not(a)], FF())]]))
+
     #test de sequent avec n_t
     ps0=ProofStateV0([Seq([Not(Not(a))],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
+    assert(ps1 == [[Seq([Not(Not(a)), a], FF())]])
+
     #test de sequent avec a_and_t.
     ps0=ProofStateV0([Seq([And(a,b)],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
+    assert(ps1 == [[Seq([And(a, b), a, b], FF())]])
+
     #test de sequent avec a_or_t
     ps0=ProofStateV0([Seq([Not(Or(a,b))],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
+    assert(ps1 == [[Seq([Not(Or(a,b)), Not(a), Not(b)], FF())]])
+
     #test de sequent avec a_impl_t
     ps0=ProofStateV0([Seq([Not(Impl(a,b))],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
-    #test de sequent avec a_and_t.
+    assert(ps1 == [[Seq([Not(Impl(a,b)), a, Not(b)], FF())]])
+
+    #test de sequent avec b_and_t.
     ps0=ProofStateV0([Seq([Not(And(a,b))],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
-    #test de sequent avec a_or_t
+    assert(ps1 == [[Seq([Not(And(a,b)), Not(a)], FF()), Seq([Not(And(a,b)), Not(b)], FF())]])
+
+    #test de sequent avec b_or_t
     ps0=ProofStateV0([Seq([Or(a,b)],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
-    #test de sequent avec a_impl_t
+    assert(ps1 == [[Seq([Or(a,b), a], FF()), Seq([Or(a,b), b], FF())]])
+
+    #test de sequent avec b_impl_t
     ps0=ProofStateV0([Seq([Impl(a,b)],FF())])
     ps1=next_proof_state(ps0)
-    print(ps1)
+    assert(ps1 == [[Seq([Impl(a,b), Not(a)], FF()), Seq([Impl(a,b), b], FF())]])
+
+    #Test d'axiome AxC
+    ps0=ProofStateV0([Seq([a, Not(a)], FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [[]])
+
+    #Test d'axiome AxF
+    ps0=ProofStateV0([Seq([FF()], FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [[]])
+
+    #Tets de plusieurs règles
+    ps0=ProofStateV0([Seq([And(a, b), Not(Not(c)),], FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [[Seq([And(a, b), Not(Not(c)), a, b], FF())], [Seq([And(a, b), Not(Not(c)), c], FF())]])
+
+    #Conditions d'arrêt
+    ps0=ProofStateV0([Seq([And(a,b), a, b], FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [])
+
+    ps0=ProofStateV0([Seq([Not(And(a,b)), Not(a)],FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [])
+
+    #Test aucune règle
+    ps0=ProofStateV0([Seq([a],FF())])
+    ps1=next_proof_state(ps0)
+    assert(ps1 == [])
+
+    print("------All tests OK------")
+
 test()
