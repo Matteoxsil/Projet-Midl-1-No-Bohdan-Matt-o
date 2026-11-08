@@ -1,6 +1,73 @@
 from datastructs import *
 from typing import TypeVar
 
+#Quelques fonctions basique pour le 4.1
+#petite fonction pour mieux voir ce qu'on fait et pouvoir etudier comment fonctionne un code
+def affichage_proofstate(ps:ProofStateV0):
+    #affiche un proofstate
+    for s in ps:
+        print(s)
+        print("="*20)
+def affichage_states(state:list[ProofStateV0]):
+    #affiche une liste de proofstate, etape de resolution
+    for ps in state:
+        affichage_proofstate(ps)
+
+def compter_feuilles(f:Form)->list[Var]:
+    """
+    compte les feuilles de l'arbre représentant cette formule
+    """
+    match(f):
+        case (Var(nom)): #cas d'arret de la recursion
+            return 1
+        case FF():
+            return 1
+        case (Not(a)): #cas formule à un variable
+            return compter_feuilles(a)
+        case (And(a,b) | Or(a,b) | Impl(a,b)):
+            return compter_feuilles(a)+compter_feuilles(b)
+        case _:
+            return 0
+        
+def extraire_Var(f:Form)->list[Var]:
+    """
+    crée une liste des variables de la formule
+    """
+    match(f):
+        case (Var(nom)): #cas d'arret de la recursion
+            return [f]
+        case (Not(a)): #cas formule à un variable
+            return extraire_Var(a)
+        case (And(a,b) | Or(a,b) | Impl(a,b)):
+            return extraire_Var(a)+extraire_Var(b)
+        case _: #compte pour FF()
+            return []
+def extraire_Var_sans_doublon(f:Form):
+    """
+    refait la liste de extraire_var sans doublon
+    """
+    var=extraire_Var(f)
+    fin=[]
+    for v in var:
+        if v not in fin:
+            fin+=[v]
+    return fin
+
+def convertir_FNN(f:Form)->list[Var]:
+    """
+    convertit une formule en forme normale negative
+    """
+    match(f):
+        case (Impl(a,b)): #cas d'arret de la recursion
+            return Or(convertir_FNN(Not(a)),convertir_FNN(b))
+        case (Not(And(a,b))):
+            return Or(convertir_FNN(Not(a)),convertir_FNN(Not(b)))
+        case (Not(Or(a,b))):
+            return And(convertir_FNN(Not(a)),convertir_FNN(Not(b)))
+        case (Not(Not(a))): #cas formule à un variable
+            return convertir_FNN(a)
+        case _: #compte pour FF()
+            return f
 
 def is_in(fs : list[Form], f:Form) -> bool:
     """ Teste si la formule f apprtient à la liste fs """
