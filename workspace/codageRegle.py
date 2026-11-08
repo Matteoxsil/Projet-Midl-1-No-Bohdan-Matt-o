@@ -11,9 +11,21 @@ def affichage_states(state:list[ProofStateV0]):
     for ps in state:
         affichage_proofstate(ps)
 
+def compter_feuilles(f:Form)->list[Var]:
+    match(f):
+        case (Var(nom)): #cas d'arret de la recursion
+            return 1
+        case FF():
+            return 1
+        case (Not(a)): #cas formule à un variable
+            return compter_feuilles(a)
+        case (And(a,b) | Or(a,b) | Impl(a,b)):
+            return compter_feuilles(a)+compter_feuilles(b)
+        case _:
+            return 0
 def extraire_Var(f:Form)->list[Var]:
     match(f):
-        case (Var(a)): #cas d'arret de la recursion
+        case (Var(nom)): #cas d'arret de la recursion
             return [f]
         case (Not(a)): #cas formule à un variable
             return extraire_Var(a)
@@ -21,6 +33,18 @@ def extraire_Var(f:Form)->list[Var]:
             return extraire_Var(a)+extraire_Var(b)
         case _: #compte pour FF()
             return []
+def convertir_FNN(f:Form)->list[Var]:
+    match(f):
+        case (Impl(a,b)): #cas d'arret de la recursion
+            return Or(convertir_FNN(Not(a)),convertir_FNN(b))
+        case (Not(And(a,b))):
+            return Or(convertir_FNN(Not(a)),convertir_FNN(Not(b)))
+        case (Not(Or(a,b))):
+            return And(convertir_FNN(Not(a)),convertir_FNN(Not(b)))
+        case (Not(Not(a))): #cas formule à un variable
+            return convertir_FNN(a)
+        case _: #compte pour FF()
+            return f
 def extraire_Var_sans_doublon(f:Form):
     var=extraire_Var(f)
     fin=[]
@@ -28,6 +52,8 @@ def extraire_Var_sans_doublon(f:Form):
         if v not in fin:
             fin+=[v]
     return fin
+
+
 
 def is_in(fs : list[Form], f:Form) -> bool:
     """ Teste si la formule f apprtient à la liste fs """
@@ -415,8 +441,3 @@ def test_general():
     test_sol_proof_state()
     print("Tout les tests ont reussis")
 
-a,b,c=Var("a"),Var("b"),Var("c")
-#dfs(next_proof_state, sol_proof_state, [[Seq([And(a, b), Not(Not(c)),], FF())],[Seq([a],a)]])
-
-#test_general()
-print(extraire_Var_sans_doublon(And(Not(Or(a,b)),Or(Not(c),a))))
