@@ -236,6 +236,15 @@ listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule,
                        b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
 #listeRegleEtAxiomes n'est pas specifique à une fonction donc variable globale
 
+#petite fonction pour mieux voir ce qu'on fait et pouvoir etudier comment fonctionne un code
+def affichage_proofstate(ps:ProofStateV0):
+    for s in ps:
+        print(s)
+        print("="*20)
+def affichage_states(state:list[ProofStateV0]):
+    for ps in state:
+        affichage_proofstate(ps)
+
 def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     """ Calcule les états de preuve successeurs de ps.
 
@@ -271,6 +280,8 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
 
 PS = TypeVar("PS")
 def dfs (nexts: Callable [[PS], list[PS]],sol: Callable [[PS], bool],states: list[PS]) -> list[PS]:
+    affichage_states(states)
+    
     if states == []:
         return ([])
     else:
@@ -385,5 +396,7 @@ def test_general():
     test_sol_proof_state()
     print("Tout les tests ont reussis")
 
-#dfs(next_proof_state, sol_proof_state, [[Seq([Var('a')], FF())]])
+a,b,c=Var("a"),Var("b"),Var("c")
+dfs(next_proof_state, sol_proof_state, [[Seq([And(a, b), Not(Not(c)),], FF())],[Seq([a],a)]])
+
 test_general()
