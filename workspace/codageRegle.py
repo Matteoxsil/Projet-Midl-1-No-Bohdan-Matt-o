@@ -236,17 +236,6 @@ listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule,
                        b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
 #listeRegleEtAxiomes n'est pas specifique à une fonction donc variable globale
 
-##4.3
-##alors proposition, pour les axiomes, le renvoie sera une liste vide
-##de cet façon on comprend que le séquent est resolu
-##si vous avez d'autres idées vous pouvez les implémenter, on peut en discuter etc
-#mais étant donné que les axiomes n'ajoute rien a l'ensemble des hypothèse...
-
-#edit : a priori de ce que je vois dans le sujet, les axiomes suprimesnt le sequent résolu de l'état de preuve 
-#je ne sais pas encore si on peut le coder dans l'implémentation des axiomes ou si il faut le faire dans cette fonction
-#si jamais on ne peut pas le faire dans l'axiome
-#il faut juste rajouter après le if regle.appcond(...) un if regle not in listeAxiomes then suite du code classique,
-##le sinon etant on ne le met pas dans le nouvel etat de preuve, donc ça correspond a un rien
 def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     """ Calcule les états de preuve successeurs de ps.
 
@@ -260,14 +249,8 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
     """
     #on choisi donc le premier sequent
     sequentEtudie = ps[0]
-    #j'ai un doute sur si on peut utiliser Calculus au lieu de faire une liste de règle a la main
-    ##dans le doute j'ai fait ça
-    
-    nouvelleEtatPreuve = list() #liste de proostatesV0
-    ##jsp si on le garde ça, ou si juste le proofstate contient une close vide
-    #jsp si ça marche, si c'ets nécéssaire a voir au moment du test
 
-    #J'ai fait de listeRegleEtAxiomes un variable global comme ça n'a rien de spécifique à cette fonction
+    nouvelleEtatPreuve = list() #liste de proostatesV0
 
     # fs = []
     if s_t_rule.appcond([], sequentEtudie):
@@ -288,29 +271,30 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
 
 PS = TypeVar("PS")
 def dfs (nexts: Callable [[PS], list[PS]],sol: Callable [[PS], bool],states: list[PS]) -> list[PS]:
-    print(states)
     if states == []:
         return ([])
     else:
-        if sol(states [0]):
-            return [states [0]]
+        if sol(states[0]):
+            return [states[0]]
             # si vous souhaitez continuer la recherche , decommentez :
             # return [states [0]] + dfs(nexts , sol , nexts(states [0]) + states [1:])
         else:
             return dfs(nexts , sol , nexts(states [0]) + states [1:])
+        
 
-def sol_proof_state (sequentEtudie: Seq) -> bool:
-    for hyp in sequentEtudie.hyps:     
-        for regle in listeRegleEtAxiomes:
-            if regle.appcond([hyp], sequentEtudie):
-                return False
-    return True
-    #return next_proof_state([sequentEtudie])==[]
+def sol_proof_state (ps: ProofStateV0) -> bool:
+    """ Renvoie True si l'état de preuve est vide: tous les séquents ont été fermés par un axiome, la preuve est terminée """
+    if len(ps) != 0:
+        return False
+    else:
+        return True
+
 
 ##Fonctions de test.
 def test_next_proof_state():
-    print("Testing next_proof_state...")
     """ Tests de next_proof_state (ProofStateV0)"""
+
+    print("Testing next_proof_state...")
     a,b,c=Var("a"),Var("b"),Var("c")
     
     #test de sequent avec s_t
@@ -384,12 +368,16 @@ def test_next_proof_state():
 
     print("------All tests OK------")
 def test_sol_proof_state():
-    print("Testing sol_proof_state...")
     """ Tests de sol_proof_state (ProofStateV0)"""
+
+    print("Testing sol_proof_state...")
+    
     a,b,c=Var("a"),Var("b"),Var("c")
     #cas sans rien à prouver
-    assert (sol_proof_state(Seq([a],FF())))
-    assert (not sol_proof_state(Seq([Not(Not(a))],FF())))
+    assert sol_proof_state([]) == True
+    assert (sol_proof_state([Seq([a],FF())]) == False)
+    assert (sol_proof_state([Seq([Not(Not(a))],FF())]) == False)
+    assert (sol_proof_state([Seq([a], b)]) == False)
     print("------All tests OK------")
 
 def test_general():
@@ -397,5 +385,5 @@ def test_general():
     test_sol_proof_state()
     print("Tout les tests ont reussis")
 
-#dfs(next_proof_state, sol_proof_state, [1])
+#dfs(next_proof_state, sol_proof_state, [[Seq([Var('a')], FF())]])
 test_general()
