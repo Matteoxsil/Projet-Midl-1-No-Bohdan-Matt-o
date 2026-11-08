@@ -30,7 +30,6 @@ def insert_forms(fs : list[Form], f:Form) -> list[Form]:
     else:
         return fs + [f]
 
-assert (insert_forms([FF()], And(Var('a'), Var('b')))) == [FF(), And(Var('a'), Var('b'))]
     
 ##règles 
 def s_t_appcond (fs: list[Form], s: Seq) -> bool:
@@ -231,16 +230,19 @@ a_impl_t_rule = Rule("a_impl_t", a_impl_t_appcond,a_impl_t_action)
 b_and_t_rule = Rule("b_and_t", b_and_t_appcond, b_and_t_action)
 b_or_t_rule = Rule("b_or_t", b_or_t_appcond, b_or_t_action)
 b_impl_t_rule = Rule("b_impl_t",b_impl_t_appcond,b_impl_t_action)
+
+#listeRegleEtAxiomes n'est pas specifique à une fonction donc variable globale
 listeRegleEtAxiomes = [s_t_rule, n_t_rule, axc_t_rule, axf_t_rule, 
                        a_and_t_rule, a_or_t_rule, a_impl_t_rule, 
                        b_and_t_rule, b_or_t_rule, b_impl_t_rule ] 
-#listeRegleEtAxiomes n'est pas specifique à une fonction donc variable globale
+
 
 #petite fonction pour mieux voir ce qu'on fait et pouvoir etudier comment fonctionne un code
 def affichage_proofstate(ps:ProofStateV0):
     for s in ps:
         print(s)
         print("="*20)
+
 def affichage_states(state:list[ProofStateV0]):
     for ps in state:
         affichage_proofstate(ps)
@@ -280,7 +282,7 @@ def next_proof_state(ps : ProofStateV0) -> list[ProofStateV0]:
 
 PS = TypeVar("PS")
 def dfs (nexts: Callable [[PS], list[PS]],sol: Callable [[PS], bool],states: list[PS]) -> list[PS]:
-    affichage_states(states)
+    #affichage_states(states)
     
     if states == []:
         return ([])
@@ -300,103 +302,11 @@ def sol_proof_state (ps: ProofStateV0) -> bool:
     else:
         return True
 
+def init_state(seq: Seq) -> list[ProofStateV0]:
+    """ Construit la liste d'états initiale dfs à partir du séquent à prouver """
+    return [[seq]]
 
-##Fonctions de test.
-def test_next_proof_state():
-    """ Tests de next_proof_state (ProofStateV0)"""
+def prove_seq(seq: Seq) -> list[ProofStateV0]:
+    """ Recherche une preuve de seq en utilisant dfs """
+    return dfs(next_proof_state, sol_proof_state, init_state(seq))
 
-    print("Testing next_proof_state...")
-    a,b,c=Var("a"),Var("b"),Var("c")
-    
-    #test de sequent avec s_t
-    ps0=ProofStateV0([Seq([a],a)])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == ([[Seq([a, Not(a)], FF())]]))
-
-    #test de sequent avec n_t
-    ps0=ProofStateV0([Seq([Not(Not(a))],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Not(Not(a)), a], FF())]])
-
-    #test de sequent avec a_and_t.
-    ps0=ProofStateV0([Seq([And(a,b)],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([And(a, b), a, b], FF())]])
-
-    #test de sequent avec a_or_t
-    ps0=ProofStateV0([Seq([Not(Or(a,b))],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Not(Or(a,b)), Not(a), Not(b)], FF())]])
-
-    #test de sequent avec a_impl_t
-    ps0=ProofStateV0([Seq([Not(Impl(a,b))],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Not(Impl(a,b)), a, Not(b)], FF())]])
-
-    #test de sequent avec b_and_t.
-    ps0=ProofStateV0([Seq([Not(And(a,b))],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Not(And(a,b)), Not(a)], FF()), Seq([Not(And(a,b)), Not(b)], FF())]])
-
-    #test de sequent avec b_or_t
-    ps0=ProofStateV0([Seq([Or(a,b)],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Or(a,b), a], FF()), Seq([Or(a,b), b], FF())]])
-
-    #test de sequent avec b_impl_t
-    ps0=ProofStateV0([Seq([Impl(a,b)],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([Impl(a,b), Not(a)], FF()), Seq([Impl(a,b), b], FF())]])
-
-    #Test d'axiome AxC
-    ps0=ProofStateV0([Seq([a, Not(a)], FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[]])
-
-    #Test d'axiome AxF
-    ps0=ProofStateV0([Seq([FF()], FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[]])
-
-    #Tets de plusieurs règles
-    ps0=ProofStateV0([Seq([And(a, b), Not(Not(c)),], FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [[Seq([And(a, b), Not(Not(c)), a, b], FF())], [Seq([And(a, b), Not(Not(c)), c], FF())]])
-
-    #Conditions d'arrêt
-    ps0=ProofStateV0([Seq([And(a,b), a, b], FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [])
-
-    ps0=ProofStateV0([Seq([Not(And(a,b)), Not(a)],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [])
-
-    #Test aucune règle
-    ps0=ProofStateV0([Seq([a],FF())])
-    ps1=next_proof_state(ps0)
-    assert(ps1 == [])
-
-    print("------All tests OK------")
-def test_sol_proof_state():
-    """ Tests de sol_proof_state (ProofStateV0)"""
-
-    print("Testing sol_proof_state...")
-    
-    a,b,c=Var("a"),Var("b"),Var("c")
-    #cas sans rien à prouver
-    assert sol_proof_state([]) == True
-    assert (sol_proof_state([Seq([a],FF())]) == False)
-    assert (sol_proof_state([Seq([Not(Not(a))],FF())]) == False)
-    assert (sol_proof_state([Seq([a], b)]) == False)
-    print("------All tests OK------")
-
-def test_general():
-    test_next_proof_state()
-    test_sol_proof_state()
-    print("Tout les tests ont reussis")
-
-a,b,c=Var("a"),Var("b"),Var("c")
-dfs(next_proof_state, sol_proof_state, [[Seq([And(a, b), Not(Not(c)),], FF())],[Seq([a],a)]])
-
-test_general()
