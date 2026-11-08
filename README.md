@@ -6,8 +6,8 @@
 - Bohdan Badai
 
 ## Pour lancer le programme:
-python3 main.py   (pour lancer les tests et quelques exemples)
-python3 tests.py  (pour lancer uniquement les tests)
+- python3 main.py   (pour lancer les tests et quelques exemples)
+- python3 tests.py  (pour lancer uniquement les tests)
 
 ## Contenu
 - "datastructs.py": structures de données fournies
